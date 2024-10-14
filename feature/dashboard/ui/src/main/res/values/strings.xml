@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello</string>
+    <string name="your_available_balance">Your available balance</string>
+    <string name="dollar_sign">$</string>
+    <string name="transfer">Transfer</string>
+    <string name="topUp">Top Up</string>
+    <string name="history">History</string>
+    <string name="payment_list">Payment List</string>
+    <string name="promo_discount_list">Promo &amp; Discount</string>
+    <string name="see_more">See More</string>
+</resources>

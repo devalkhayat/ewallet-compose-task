@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="payment_screen_1_title">Scan to Pay</string>
+    <string name="payment_screen_1_headline">Payment with QR Code</string>
+    <string name="payment_screen_1_subtitle">Hold the code inside the frame, it will be scanned automatically</string>
+
+    <string name="payment_screen_2_title">Summary Transaction</string>
+    <string name="payment_screen_2_place_name">Smart Coffee</string>
+    <string name="payment_screen_2_date">Payment on Dec 2,2020</string>
+    <string name="payment_screen_2_cost">Choose Cards</string>
+    <string name="payment_screen_2_info">Payment fee $2 has been applied</string>
+    <string name="payment_screen_2_headline">Choose Cards</string>
+    <string name="payment_screen_2_card_name">Wally Virtual Card</string>
+    <string name="payment_screen_2_card_number">0318-1608-2105</string>
+    <string name="payment_screen_2_pay">Proceed to Pay</string>
+
+    <string name="payment_screen_3_title">Confirm Password</string>
+    <string name="payment_screen_3_input_caption">Please input your password before continuing payment</string>
+    <string name="payment_screen_3_input_label">Password</string>
+    <string name="payment_screen_3_input_note">Must be at least 8 characters</string>
+
+
+</resources>
