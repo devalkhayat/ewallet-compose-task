@@ -151,11 +151,8 @@ fun Cards(navController: NavHostController){
             AppCardDropDown(cardList)
             Spacer(modifier = Modifier.height(22.dp))
             AppButton(title = stringResource(id = com.feature.payment.ui.R.string.payment_screen_2_pay), background = AppColors.Green2) {
-                navController.navigate(PaymentFeatureRoutes.confirmIdentityRoute) {
-                    popUpTo(PaymentFeatureRoutes.confirmIdentityRoute) {
-                        inclusive = true
-                    }
-                }
+                navController.navigate(PaymentFeatureRoutes.confirmIdentityRoute)
+
             }
 
         }

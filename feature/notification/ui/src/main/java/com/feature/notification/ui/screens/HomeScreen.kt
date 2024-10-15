@@ -158,7 +158,7 @@ fun History(homeScreenViewModel: HomeScreenViewModel) {
     var notifications by remember {
         mutableStateOf(listOf<Notification>())
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(true) {
 
         homeScreenViewModel.actionListener.send(HomeScreenIntents.InitNotificationsData)
         homeScreenViewModel.state.collect{

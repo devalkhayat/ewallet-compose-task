@@ -163,11 +163,9 @@ fun CameraContent(navController: NavHostController) {
 
 if(!code.isEmpty()){
     Log.d(TAG, "HomeScreen: $code")
-    navController.navigate(PaymentFeatureRoutes.summaryScreenRoute) {
-        popUpTo(PaymentFeatureRoutes.summaryScreenRoute) {
-            inclusive = true
-        }
-    }
+    navController.navigate(PaymentFeatureRoutes.summaryScreenRoute)
+
+
 }
 
 

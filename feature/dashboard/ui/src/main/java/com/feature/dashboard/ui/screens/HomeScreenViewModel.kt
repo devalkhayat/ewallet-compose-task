@@ -52,41 +52,20 @@ class HomeScreenViewModel @Inject constructor(private val addUserInfoUserCase: A
           actionListener.consumeAsFlow().collect{
               when(it){
 
-                  is HomeScreenIntents.InitUserData -> addUserInfo()
-                  is HomeScreenIntents.InitPaymentCategoriesData -> addPaymentCategories()
-                  is HomeScreenIntents.InitDiscountAndPromoData -> addDiscountAndPromo()
-                  is HomeScreenIntents.GetUserData -> showUserResult()
-                  is HomeScreenIntents.GetPaymentCategories -> showPaymentCategoriesResult()
-                  is HomeScreenIntents.GetDiscountAndPromo -> showDiscountAndPromoResult()
+                  is HomeScreenIntents.InitData -> initData()
+                  is HomeScreenIntents.GetData -> getDataResult()
+
+
               }
           }
       }
     }
 
-    //reduce
-    private fun showUserResult(){
-        viewModelScope.launch {
-             getUserInfoUseCase().collect{
-                when(it){
+    private fun initData(){
 
-                    is UiEvent.Error -> {
-                        _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-                    }
-                    is UiEvent.Success ->{
-                        _viewStateListener.value=HomeScreenStateView.DataUserResult(it.data!!)
-                    }
-
-
-                }
-            }
-
-        }
-    }
-    private fun addUserInfo(){
-        viewModelScope.launch {
+        viewModelScope.launch{
 
             val user =User(name = "Mohammed", amount = 15901)
-
             addUserInfoUserCase(user).collect{
                 when(it){
 
@@ -94,131 +73,100 @@ class HomeScreenViewModel @Inject constructor(private val addUserInfoUserCase: A
                         _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
                     }
                     is UiEvent.Success ->{
-                        _viewStateListener.value=HomeScreenStateView.UserSavedSuccessfully("User Data Saved")
+
+                        deleteAllPaymentCategoriesUseCase().collect{
+
+                            when(it){
+                                is UiEvent.Error ->   _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
+                                is UiEvent.Success -> {
+
+                                    val categories= listOf<PaymentCategory>(
+                                        PaymentCategory(name = "Electricity", icon = com.core.common.R.drawable.ic_electricity),
+                                        PaymentCategory(name = "Internet", icon = com.core.common.R.drawable.ic_internet),
+                                        PaymentCategory(name = "Voucher", icon = com.core.common.R.drawable.ic_voucher),
+                                        PaymentCategory(name = "Assurance", icon = com.core.common.R.drawable.ic_assurance),
+                                        PaymentCategory(name = "Merchant", icon = com.core.common.R.drawable.ic_merchant),
+                                        PaymentCategory(name = "Mobile Credit", icon = com.core.common.R.drawable.ic_mobile_credit),
+                                        PaymentCategory(name = "Bill", icon = com.core.common.R.drawable.ic_bill),
+                                        PaymentCategory(name = "More", icon = com.core.common.R.drawable.ic_more),
+                                    )
+
+                                    addPaymentCategoryUseCase(categories).collect{
+                                        when(it){
+
+                                            is UiEvent.Error -> {
+                                                _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
+                                            }
+                                            is UiEvent.Success ->{
+                                                deleteAllDiscountAndPromoUseCase().collect{
+
+                                                    when(it){
+                                                        is UiEvent.Error -> _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
+
+                                                        is UiEvent.Success -> {
+
+                                                            val dataList= listOf<DiscountAndPromo>(
+                                                                DiscountAndPromo(title = "Black Friday deal", percentage = "30", description = "Get discount for every topup, transfer and payment", isDiscount = true),
+                                                                DiscountAndPromo(title = "Special Offer for Today's Top Up", description = "Get discount for every top up, transfer and payment", isDiscount = false),
+                                                            )
+
+                                                            addDiscountAndPromoUseCase(dataList).collect{
+                                                                when(it){
+
+                                                                    is UiEvent.Error -> {
+                                                                        _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
+                                                                    }
+                                                                    is UiEvent.Success ->{
+                                                                        _viewStateListener.value=HomeScreenStateView.SavedSuccessfully("All Data Saved")
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+
                     }
                 }
             }
-
         }
+
+
     }
 
-    private fun showPaymentCategoriesResult(){
+    //reduce
+    private fun getDataResult(){
+        var user:User=User()
+        var paymentCategories= listOf<PaymentCategory>()
+        var discountsAndPromo=listOf<DiscountAndPromo>()
+
         viewModelScope.launch {
+
+            getUserInfoUseCase().collect{
+                user=it.data!!
+            }
+
             getPaymentCategoriesUseCase().collect{
-                when(it){
-
-                    is UiEvent.Error -> {
-                        _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-                    }
-                    is UiEvent.Success ->{
-                        _viewStateListener.value=HomeScreenStateView.DataPaymentCategoriesResult(it.data!!)
-                    }
-
-
-                }
+                paymentCategories=it.data!!
             }
-
-        }
-    }
-    private fun addPaymentCategories(){
-        viewModelScope.launch {
-
-            deleteAllPaymentCategoriesUseCase().collect{
-
-                when(it){
-                    is UiEvent.Error ->   _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-                    is UiEvent.Success -> {
-
-                        val categories= listOf<PaymentCategory>(
-                            PaymentCategory(name = "Electricity", icon = com.core.common.R.drawable.ic_electricity),
-                            PaymentCategory(name = "Internet", icon = com.core.common.R.drawable.ic_internet),
-                            PaymentCategory(name = "Voucher", icon = com.core.common.R.drawable.ic_voucher),
-                            PaymentCategory(name = "Assurance", icon = com.core.common.R.drawable.ic_assurance),
-                            PaymentCategory(name = "Merchant", icon = com.core.common.R.drawable.ic_merchant),
-                            PaymentCategory(name = "Mobile Credit", icon = com.core.common.R.drawable.ic_mobile_credit),
-                            PaymentCategory(name = "Bill", icon = com.core.common.R.drawable.ic_bill),
-                            PaymentCategory(name = "More", icon = com.core.common.R.drawable.ic_more),
-                        )
-
-                        addPaymentCategoryUseCase(categories).collect{
-                            when(it){
-
-                                is UiEvent.Error -> {
-                                    _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-                                }
-                                is UiEvent.Success ->{
-                                    _viewStateListener.value=HomeScreenStateView.PaymentCategoriesSavedSuccessfully("Payment Categories Saved")
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
-
-
-
-
-
-
-
-        }
-    }
-
-    private fun showDiscountAndPromoResult(){
-        viewModelScope.launch {
             getDiscountAndPromoUseCase().collect{
-                when(it){
-
-                    is UiEvent.Error -> _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-
-                    is UiEvent.Success ->{
-                        _viewStateListener.value=HomeScreenStateView.DataDiscountAndPromoResult(it.data!!)
-                    }
-
-
-                }
+                discountsAndPromo=it.data!!
             }
 
+            _viewStateListener.value=HomeScreenStateView.DataResult(user,paymentCategories,discountsAndPromo)
         }
     }
-    private fun addDiscountAndPromo(){
-        viewModelScope.launch {
-
-            deleteAllDiscountAndPromoUseCase().collect{
-
-                when(it){
-                    is UiEvent.Error -> _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-
-                    is UiEvent.Success -> {
-
-                        val dataList= listOf<DiscountAndPromo>(
-                            DiscountAndPromo(title = "Black Friday deal", percentage = "30", description = "Get discount for every topup, transfer and payment", isDiscount = true),
-                            DiscountAndPromo(title = "Special Offer for Today's Top Up", description = "Get discount for every top up, transfer and payment", isDiscount = false),
-                        )
-
-                        addDiscountAndPromoUseCase(dataList).collect{
-                            when(it){
-
-                                is UiEvent.Error -> {
-                                    _viewStateListener.value=HomeScreenStateView.Error(it.message!!)
-                                }
-                                is UiEvent.Success ->{
-                                    _viewStateListener.value=HomeScreenStateView.DiscountAndPromoSavedSuccessfully("Discounts Saved")
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
 
 
 
 
 
 
-
-        }
-    }
 }

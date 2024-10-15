@@ -1,5 +1,7 @@
 package com.feature.payment.ui.screens
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,10 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +38,9 @@ import com.core.common.theme.Label18
 import com.core.common.theme.getColor
 import com.core.feature_api.PaymentFeatureRoutes
 import com.feature.payment.ui.util.BiometricPromptManager
+import kotlinx.coroutines.launch
+
+val TAG1: String?="confirm_log"
 
 @Composable
 fun ConfirmScreen(navController: NavHostController) {
@@ -83,50 +92,59 @@ fun ConfirmScreen(navController: NavHostController) {
                 }
             }
 
-            val context = LocalContext.current
-            val bio by remember {
-                mutableStateOf(context.getActivity()?.let {
-                    BiometricPromptManager(activity = it)
-                })
-            }
-            val bioResult by bio!!.promptResults.collectAsState(initial = null)
+            ShowBiometric(navController)
 
-            AppButton(
-                title = stringResource(id = com.feature.payment.ui.R.string.payment_screen_3_title),
-                background = AppColors.Green2
-            ) {
-                bio?.showBiometricPrompt("test", "test description")
-
-            }
-
-            when(bioResult){
-                is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-
-                }
-                BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
-
-                }
-                BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
-
-                }
-                BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-
-                    navController.navigate(PaymentFeatureRoutes.paymentReceiptRoute) {
-                        popUpTo(PaymentFeatureRoutes.paymentReceiptRoute) {
-                            inclusive = true
-                        }
-                    }
-                }
-                BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
-
-                }
-                BiometricPromptManager.BiometricResult.HardwareUnavailable -> {
-
-                }
-                null -> {
-
-                }
-            }
         }
     }
+}
+@Composable
+fun ShowBiometric(navController: NavHostController){
+
+    val context = LocalContext.current
+    val bio by remember {
+        mutableStateOf(context.getActivity()?.let {
+            BiometricPromptManager(activity = it)
+        })
+    }
+
+    AppButton(
+        title = stringResource(id = com.feature.payment.ui.R.string.payment_screen_3_title),
+        background = AppColors.Green2
+    ) {
+        bio?.showBiometricPrompt("Ewallet", "Confirmation")
+    }
+
+    LaunchedEffect(Unit){
+
+        bio!!.promptResults.collect{ bioResult->
+            when(bioResult){
+                is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+                    Log.d(TAG1, "ConfirmScreen: 1")
+                }
+                BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                    Log.d(TAG1, "ConfirmScreen: 2")
+                }
+                BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
+                    Log.d(TAG, "ConfirmScreen: 3")
+                }
+                BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
+                    Log.d(TAG1, "ConfirmScreen: 4")
+                    navController.navigate(PaymentFeatureRoutes.paymentReceiptRoute)
+                }
+                BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
+                    Log.d(TAG1, "ConfirmScreen: 5")
+                }
+                BiometricPromptManager.BiometricResult.HardwareUnavailable -> {
+                    Log.d(TAG1, "ConfirmScreen: 6")
+                }
+                null -> {
+                    Log.d(TAG1, "ConfirmScreen: 7")
+                }
+            }
+
+        }
+    }
+
+
+
 }

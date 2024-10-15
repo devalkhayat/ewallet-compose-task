@@ -7,14 +7,11 @@ import com.feature.dashboard.domain.model.User
 
 sealed class HomeScreenStateView {
 
-    data class  UserSavedSuccessfully(val message: String):HomeScreenStateView()
-    data class  DataUserResult(val result: User):HomeScreenStateView()
+    data class  SavedSuccessfully(val message: String):HomeScreenStateView()
 
-    data class  PaymentCategoriesSavedSuccessfully(val message: String):HomeScreenStateView()
-    data class  DataPaymentCategoriesResult(val result: List<PaymentCategory>):HomeScreenStateView()
+    data class  DataResult(val userInfo: User,val paymentCategoriesList: List<PaymentCategory>,val discountAndPromoList: List<DiscountAndPromo>):HomeScreenStateView()
 
-    data class  DataDiscountAndPromoResult(val result: List<DiscountAndPromo>):HomeScreenStateView()
-    data class  DiscountAndPromoSavedSuccessfully(val message: String):HomeScreenStateView()
+
 
     data class  Error(val message:String):HomeScreenStateView()
 

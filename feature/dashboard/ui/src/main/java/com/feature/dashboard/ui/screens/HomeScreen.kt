@@ -72,45 +72,105 @@ import com.feature.dashboard.ui.R
 val TAG: String?="Logging_info"
 
 @Composable
-fun HomeScreen(){
+fun HomeScreen() {
+
+    val homeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
+    var result by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(Unit) {
+        homeScreenViewModel.actionListener.send(HomeScreenIntents.InitData)
+        homeScreenViewModel.state.collect { currentState ->
+            when (currentState) {
+
+                is HomeScreenStateView.Error -> Log.d(TAG, "Inited: ${currentState.message}")
+
+                is HomeScreenStateView.SavedSuccessfully -> {
+                    result = true
+                    Log.d(TAG, "Inited: ${currentState.message}")
+                }
+
+                else -> {
+                    Log.d(TAG, "Inited: Nothing")
+                }
+            }
+        }
+    }
+
+    if (result) {
 
 
+        var user by remember {
+            mutableStateOf(User())
+        }
+        var paymentCategories by remember {
+            mutableStateOf(listOf<PaymentCategory>())
+        }
+        var discountsAndPromo by remember {
+            mutableStateOf(listOf<DiscountAndPromo>())
+        }
 
-    val homeScreenViewModel= hiltViewModel<HomeScreenViewModel>()
+        LaunchedEffect(Unit) {
+            homeScreenViewModel.actionListener.send(HomeScreenIntents.GetData)
+            homeScreenViewModel.state.collect{
+                when(it){
+                    is HomeScreenStateView.DataResult -> {
+                        user=it.userInfo
+                        paymentCategories=it.paymentCategoriesList
+                        discountsAndPromo=it.discountAndPromoList
+                    }
+                    is HomeScreenStateView.Error -> TODO()
+                    else -> {
+
+                    }
+                }
+            }
+        }
+
+
+        Content(user,paymentCategories,discountsAndPromo)
+    }
+
+}
+
+@Composable
+fun Content(user: User, paymentCategories: List<PaymentCategory>, discountsAndPromos: List<DiscountAndPromo>){
 
     Scaffold(
         topBar = { TopBar()},
 
-    ) {
+        ) {
 
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(it)){
-
-
-                    LazyColumn(modifier = Modifier
-                        .wrapContentHeight()
-                        .padding(start = 8.dp, end = 8.dp, top = 26.dp),verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-
-                        item {
-                            UserInfo(homeScreenViewModel)
-                        }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(it)){
 
 
-                        item {
-                            MainActions()
-                        }
+            LazyColumn(modifier = Modifier
+                .wrapContentHeight()
+                .padding(start = 8.dp, end = 8.dp, top = 26.dp),verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
 
 
-                        item {
-                            PaymentCategories(homeScreenViewModel)
-                        }
+                item {
+                    UserData(user = user)
+                }
 
-                        item {
-                            PromoCodesAndDiscounts(homeScreenViewModel)
-                        }
-                    }
+
+                item {
+                    MainActions()
+                }
+
+
+                item {
+
+                    PaymentList(paymentCategories = paymentCategories)
+                }
+
+                item {
+                    PromoAndDiscountList(discountsAndPromos)
+                }
+            }
 
 
 
@@ -118,10 +178,7 @@ fun HomeScreen(){
         }
 
     }
-
-
 }
-
 @Composable
 fun TopBar(){
     Row(modifier = Modifier
@@ -136,30 +193,6 @@ fun TopBar(){
 
 
 @Composable
-fun UserInfo(homeScreenViewModel: HomeScreenViewModel) {
-
-    var user by remember {
-        mutableStateOf(User(name = "", amount = 0))
-    }
-    LaunchedEffect(Unit) {
-        homeScreenViewModel.actionListener.send(HomeScreenIntents.InitUserData)
-        homeScreenViewModel.state.collect{
-
-            when (it) {
-
-                is HomeScreenStateView.UserSavedSuccessfully -> homeScreenViewModel.actionListener.send(HomeScreenIntents.GetUserData)
-                is HomeScreenStateView.DataUserResult -> user=it.result
-                is HomeScreenStateView.Error -> {  Log.d(TAG, "UserInfo: ${it.message}")}
-
-              else ->  Log.d(TAG, "UserInfo:Nothing Returned")
-            }
-        }
-    }
-
-    UserData(user = user)
-}
-
-@Composable
 fun UserData(user:User){
 
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -169,7 +202,7 @@ fun UserData(user:User){
             AppLabel(caption = "${stringResource(id = R.string.hello)} ${user.name},", style = MaterialTheme.typography.Header18 , color = AppColors.Blue1)
             AppLabel(caption = stringResource(id = R.string.your_available_balance), style = MaterialTheme.typography.Label14 , color = AppColors.Gray1)
         }
-        AppLabel(caption = "${stringResource(id = R.string.dollar_sign)} ${user.amount.toThousands()}", style = MaterialTheme.typography.Header28 , color = AppColors.Blue1)
+        AppLabel(caption = "${stringResource(id = R.string.dollar_sign)} ${user.amount?.toThousands()}", style = MaterialTheme.typography.Header28 , color = AppColors.Blue1)
     }
 }
 
@@ -222,31 +255,7 @@ fun VerticalDivider(){
 }
 
 
-@Composable
-fun PaymentCategories(homeScreenViewModel: HomeScreenViewModel) {
 
-    var categories by remember {
-        mutableStateOf(listOf<PaymentCategory>())
-    }
-    LaunchedEffect(Unit) {
-        homeScreenViewModel.actionListener.send(HomeScreenIntents.InitPaymentCategoriesData)
-
-        homeScreenViewModel.state.collect{
-
-            when (it) {
-                is HomeScreenStateView.PaymentCategoriesSavedSuccessfully -> homeScreenViewModel.actionListener.send(HomeScreenIntents.GetPaymentCategories)
-
-                is HomeScreenStateView.DataPaymentCategoriesResult -> categories=it.result
-
-                is HomeScreenStateView.Error -> {  Log.d(TAG, "Categories: ${it.message}")}
-
-                else ->  Log.d(TAG, "categories:Nothing Returned")
-            }
-        }
-    }
-
-    PaymentList(paymentCategories = categories)
-}
 @Composable
 fun PaymentList(paymentCategories:List<PaymentCategory>) {
 
@@ -284,36 +293,11 @@ fun GridItem(paymentCategory:PaymentCategory) {
 
 
 @Composable
-fun PromoCodesAndDiscounts(homeScreenViewModel: HomeScreenViewModel) {
-
-    var discountAndPromoList by remember {
-        mutableStateOf(listOf<DiscountAndPromo>())
-    }
-    LaunchedEffect(Unit) {
-        homeScreenViewModel.actionListener.send(HomeScreenIntents.InitDiscountAndPromoData)
-
-        homeScreenViewModel.state.collect{
-
-            when (it) {
-
-                is HomeScreenStateView.DiscountAndPromoSavedSuccessfully -> homeScreenViewModel.actionListener.send(HomeScreenIntents.GetDiscountAndPromo)
-                is HomeScreenStateView.DataDiscountAndPromoResult -> discountAndPromoList=it.result
-                is HomeScreenStateView.Error -> {  Log.d(TAG, "PromoCodesAndDiscounts: ${it.message}")}
-
-                else ->  Log.d(TAG, "categories:Nothing Returned")
-            }
-        }
-    }
-
-    PromoAndDiscountList(discountsAndPromos = discountAndPromoList)
-
-
-}
-
-@Composable
 fun PromoAndDiscountList(discountsAndPromos:List<DiscountAndPromo>){
 
-    Column(modifier = Modifier.fillMaxWidth().height(280.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .height(280.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.fillMaxWidth()) {
             AppLabel(
                 caption = stringResource(id = R.string.promo_discount_list),
@@ -393,8 +377,8 @@ fun DrawDiscount(title:String,percentage:String,descripton:String){
 
                 DrawRound(
                     background = AppColors.Green2, modifier = Modifier
-                    .height(170.dp)
-                    .graphicsLayer(rotationZ = -20f, translationY = 200f)){}
+                        .height(170.dp)
+                        .graphicsLayer(rotationZ = -20f, translationY = 200f)){}
 
                 Box(modifier = Modifier.graphicsLayer(translationY = 300f, translationX = 40f), contentAlignment = Alignment.Center){
                     AppLabel(caption = "$percentage%", style = MaterialTheme.typography.Header28 , color = AppColors.White)
@@ -441,12 +425,12 @@ fun DrawPromo(title:String,descripton:String){
 
                 DrawRound(
                     background = AppColors.Green2, modifier = Modifier
-                    .height(170.dp)
-                    .graphicsLayer(rotationZ = -20f, translationY = 200f)){}
+                        .height(170.dp)
+                        .graphicsLayer(rotationZ = -20f, translationY = 200f)){}
                 DrawRound(
                     background = AppColors.Blue2, modifier = Modifier
-                    .height(170.dp)
-                    .graphicsLayer(rotationZ = -20f, translationY = 80f, translationX = 100f)){}
+                        .height(170.dp)
+                        .graphicsLayer(rotationZ = -20f, translationY = 80f, translationX = 100f)){}
 
             }
 
